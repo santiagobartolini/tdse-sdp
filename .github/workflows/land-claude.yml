@@ -1,0 +1,96 @@
+name: Land Claude branches
+
+on:
+  push:
+    branches: ['claude/**']
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+concurrency:
+  group: land-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  AUTHOR_NAME: Santiago Bartolini
+  AUTHOR_EMAIL: 4937254+santiagobartolini@users.noreply.github.com
+
+jobs:
+  land:
+    if: github.event_name == 'push' && github.event.deleted == false
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SRC: ${{ github.ref_name }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Checkout with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "$AUTHOR_NAME"
+          git config user.email "$AUTHOR_EMAIL"
+
+      - name: Rewrite authorship and clean commit messages
+        run: |
+          # git rebase --exec does not accept multi-line commands,
+          # so the rewrite logic lives in its own script.
+          cat > /tmp/clean-commit.sh <<'SCRIPT'
+          #!/usr/bin/env bash
+          msg=$(git log -1 --format=%B \
+            | grep -v -i -E "(^Co-Authored-By: Claude|Generated with \[?Claude Code|claude\.ai/code/session_|^Claude-Session:)" \
+            || true)
+          if [ -z "$(printf '%s' "$msg" | tr -d '[:space:]')" ]; then
+            msg=$(git log -1 --format=%s)
+          fi
+          printf '%s\n' "$msg" | git commit --amend --reset-author -F -
+          SCRIPT
+          chmod +x /tmp/clean-commit.sh
+
+          DEST="review/${SRC#claude/}"
+          git checkout -B "$DEST" "origin/$SRC"
+
+          git rebase --force-rebase origin/main --exec /tmp/clean-commit.sh
+
+          AHEAD=$(git rev-list --count origin/main..HEAD)
+          echo "DEST=$DEST" >> "$GITHUB_ENV"
+          echo "AHEAD=$AHEAD" >> "$GITHUB_ENV"
+
+          if [ "$AHEAD" -gt 0 ]; then
+            git push --force origin "$DEST"
+          else
+            git push origin --delete "$SRC" || true
+          fi
+
+      - name: Open PR if it does not exist
+        if: env.AHEAD != '0'
+        run: |
+          gh pr view "$DEST" --repo "$REPO" >/dev/null 2>&1 || \
+            gh pr create --repo "$REPO" --base main --head "$DEST" \
+              --title "$(git log -1 --format=%s)" \
+              --body "Changes from session \`$SRC\`, with rewritten authorship."
+
+      - name: Report conflict
+        if: failure()
+        run: |
+          echo "::error::Could not land $SRC on top of main (likely a conflict). The branch was left untouched."
+
+  cleanup:
+    if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'review/')
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      HEAD: ${{ github.head_ref }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Delete session branches
+        run: |
+          gh api -X DELETE "repos/$REPO/git/refs/heads/claude/${HEAD#review/}" || true
+          gh api -X DELETE "repos/$REPO/git/refs/heads/$HEAD" || true
