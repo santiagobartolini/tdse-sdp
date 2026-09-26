@@ -1,0 +1,27 @@
+name: Sync upstream
+
+on:
+  schedule:
+    # Every day at 06:00 UTC (03:00 in Buenos Aires)
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge upstream into main
+        run: |
+          git config user.name "Santiago Bartolini"
+          git config user.email "TU_EMAIL_NOREPLY"
+          git remote add upstream https://github.com/USUARIO-ORIGINAL/tdse-software_design_patterns.git
+          git fetch upstream
+          git merge --no-edit upstream/main
+          git push origin main
