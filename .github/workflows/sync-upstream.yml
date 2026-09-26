@@ -20,8 +20,8 @@ jobs:
       - name: Merge upstream into main
         run: |
           git config user.name "Santiago Bartolini"
-          git config user.email "TU_EMAIL_NOREPLY"
-          git remote add upstream https://github.com/USUARIO-ORIGINAL/tdse-software_design_patterns.git
+          git config user.email "4937254+santiagobartolini@users.noreply.github.com"
+          git remote add upstream https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns.git
           git fetch upstream
           git merge --no-edit upstream/main
           git push origin main
