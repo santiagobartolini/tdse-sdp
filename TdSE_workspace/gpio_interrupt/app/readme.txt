@@ -1,4 +1,4 @@
-Example: model_integration
+Example: gpio_interrupt
 
  Description:
  Bare Metal - Event-Triggered Systems (ETS)
@@ -16,20 +16,11 @@ Example: model_integration
     app_it.c (app_it.h)
 	 Utilities for "Callbacks"
 
-    task_sensor.c (task_sensor.h, task_sensor_attribute.h) 
-     Non-Blocking Code (Update by Time Code, period = 1mS) -> Sensor Modeling
+    task_a.c (task_a.h) 
+     Blocking Code (Update by Time Code, period = 1mS)
 
-    task_system.c (task_system.h, task_system_attribute.h) 
-     Non-Blocking Code (Update by Time Code, period = 1mS) -> System Modeling
-
-      task_system_interface.c (task_system_interface.h)
-       Non-Blocking Code
-
-    task_actuator.c (task_actuator.h, task_actuator_attribute.h) 
-     Non-Blocking Code (Update by Time Code, period = 1mS) -> Actuator Modeling
-
-      task_actuator_interface.c (task_actuator_interface.h)
-       Non-Blocking Code
+    task_b.c (task_b.h)
+     Non-Blocking Code (Update by Time Code, period = 1mS)
 
   logger.h (logger.c)
    Utilities for Retarget "printf" to Console

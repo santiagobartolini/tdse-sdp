@@ -1,4 +1,4 @@
-Example: tdse-tp0_03-cyclic_executive
+Example: cyclic_executive
 
  Description:
  Bare Metal - Event-Triggered Systems (ETS)
