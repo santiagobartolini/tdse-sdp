@@ -44,6 +44,15 @@
 
 ---
 
+### Ejemplo de proyectos de alumnos
+| **Título** | **Código** | **Informe** |
+|:---------- | :--------- | :---------- |
+| Dimmer + Switch (Ventilador & Luces) | [link](https://github.com/Embebidos-Fran-Marcos-Nacho/tdse-tf_1-2/tree/Memoria-final-y-video/Software%20STM32/main) | [link](https://github.com/Embebidos-Fran-Marcos-Nacho/tdse-tf_1-2/blob/Memoria-final-y-video/Memoria%20t%C3%A9cnica/Memoria%20t%C3%A9cnica.md) |
+| Cerradura Electrónica de Alta Seguridad | [link](https://github.com/Matias-J-Sanchez-Q/tdse-tf_2026-1erC_2-02/tree/Matias-J-Sanchez-Q-patch-1/tpfinal) | [link](https://github.com/Matias-J-Sanchez-Q/tdse-tf_2026-1erC_2-02/blob/Matias-J-Sanchez-Q-patch-1/Memoria_final.md) |
+| Smartceta | [link](https://github.com/igonzalezb/tdse-tf_3-03/tree/Entrega_Final/tdse-tf_3-03) | [Link](https://github.com/igonzalezb/tdse-tf_3-03/blob/Entrega_Final/Memoria%20Tecnica/Memoria%20Tecnica.md)  |
+
+---
+
 ### Proyectos de prueba
 | Referencias | Fuentes |   |
 | :------- | :----| - |
