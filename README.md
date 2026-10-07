@@ -40,7 +40,9 @@
 | [<b>Semihosting</b>](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/blob/main/Semihosting.md) | [semihosting](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/tree/main/TdSE_workspace/semihosting) | <b>X</b> |
 | [<b>Cyclic Executive</b>](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/blob/main/Cyclic_Executive.md) | [cyclic_executive](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/tree/main/TdSE_workspace/cyclic_executive) | <b>X</b> |
 | [<b>Model Integration</b>](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/blob/main/Model_Integration.md) | [model_integration](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/tree/main/TdSE_workspace/model_integration) | <b>X</b> |
-| [<b>GPIO Interrupt</b>](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/blob/main/GPIO_Interrupt.md) | [gpio_interrupt](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/tree/main/TdSE_workspace/gpio_interrupt) | |
+| [<b>ADC Interrupt</b>](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/blob/main/ADC_Interrupt.md) | [adc_interrupt](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/tree/main/TdSE_workspace/adc_interrupt) | <b>X</b> |
+| [<b>GPIO Interrupt</b>](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/blob/main/GPIO_Interrupt.md) | [gpio_interrupt](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/tree/main/TdSE_workspace/gpio_interrupt) | <b>X</b> |
+| [<b>Timer Interrupt</b>](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/blob/main/Timer_Interrupt.md) | [timer_interrupt](https://github.com/JuanManuelCruz-FIUBA/tdse-software_design_patterns/tree/main/TdSE_workspace/timer_interrupt) | <b>X</b> |
 
 ---
 
@@ -69,13 +71,4 @@
 | Interfaz EMG para Monitoreo de Actividad Muscular | [link](https://github.com/lucianafalcon/tdse-tf_3/blob/memoria-final-y-video/OneDrive/Desktop/TPF_embebidos/final/README.md) | [Link](https://github.com/lucianafalcon/tdse-tf_3/tree/memoria-final-y-video/OneDrive/Desktop/TPF_embebidos/final/tdse-tp3_04-interactive_menu-main)  |
 | Jarra Eléctrica | [link](https://github.com/pauleDFT/TDSE_TF_2c2025_3_06_REENTREGA/blob/Reentrega/Memoria_t%C3%A9cnica_e_im%C3%A1genes/Memoria_del_trabajo_final.md) | [Link](https://github.com/pauleDFT/TDSE_TF_2c2025_3_06_REENTREGA/tree/Reentrega/Codigo_trabajo_final/tdse_tf_06)  |
 
-
 ---
-
-### Proyectos de prueba
-| Referencias | Fuentes |   |
-| :------- | :----| - |
-| | |
-
-
-

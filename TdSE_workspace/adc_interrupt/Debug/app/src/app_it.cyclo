@@ -1,0 +1,4 @@
+../app/src/app_it.c:61:6:app_it_init	1
+../app/src/app_it.c:74:6:HAL_SYSTICK_Callback	1
+../app/src/app_it.c:85:6:HAL_GPIO_EXTI_Callback	1
+../app/src/app_it.c:99:6:HAL_ADC_ConvCpltCallback	1
