@@ -12,8 +12,12 @@ código: es un inventario con observaciones y preguntas abiertas.
   (se sincroniza a diario con `.github/workflows/sync-upstream.yml`). Contiene **7 proyectos de
   referencia** hechos por el docente y **7 guías en Markdown** que los explican.
 - Los **trabajos de alumnos no están en el repo**. El `README.md` solo tiene una tabla con **21
-  enlaces a repositorios externos** de trabajos finales.
+  enlaces a repositorios externos** de trabajos finales. De esos, 19 son públicos y **17 tienen
+  código**. Todos usan la misma placa (Nucleo-F103RB) y el mismo IDE, y **14 parten de la plantilla de
+  la cátedra** (sección 6).
 - **No hay correcciones ni devoluciones docentes**, ni rúbricas, ni consignas de TP, ni reglamento.
+  Las memorias de los alumnos muestran que **las devoluciones existen** ("Correcciones según devolución
+  de primer entrega"), pero no quedaron en los archivos. Probablemente estén en los PRs de GitHub.
 - Lo que sí hay es una **arquitectura de referencia muy consistente**: Cyclic Executive con tick de
   1 ms, tareas `*_init`/`*_update`, statecharts con `switch`, tablas de configuración/datos, colas de
   eventos entre tareas e interrupciones resueltas con callbacks de HAL. Ese es, en la práctica, el
@@ -239,16 +243,172 @@ de los statecharts y la medición de WCET.
   estático), no bloquear dentro de las tareas, no hacer trabajo pesado en las ISR (solo incrementar un
   contador o marcar un flag) y usar `volatile` en las variables compartidas con interrupciones.
 
-## 6. Qué falta, qué no se entiende y preguntas para la cátedra
+## 6. Entregas de alumnos (repos externos del README)
+
+Relevamiento hecho el 2026-10-08 clonando (solo lectura, `--depth 1`) cada repo de la tabla del README
+y revisando la rama a la que apuntan los links. No se compiló ni se ejecutó nada.
+
+### Disponibilidad
+
+- De los **21** repos, **19 son públicos y accesibles**. `lucianafalcon/tdse-tf_3` (Interfaz EMG) y
+  `pauleDFT/TDSE_TF_2c2025_3_06_REENTREGA` (Jarra Eléctrica) piden autenticación: son privados o ya no
+  existen.
+- En los 19 accesibles, **todas las rutas de los links existen** en la rama indicada (salvo por la
+  inversión de columnas "Código" e "Informe" ya mencionada).
+- **2 de los 19 no tienen código**: `camilamon123/tdse-tf_1-4` (Luz-Morse) y `mpdcfiuba/tdse-tf_3-4`
+  (Órganos de tubos) solo tienen la memoria y documentos de requisitos. Quedan **17 entregas con
+  código**.
+- Los commits finales van de **febrero a septiembre de 2026**, así que hay al menos dos cohortes
+  (2.º cuatrimestre de 2025 con entrega en febrero o marzo de 2026, y 1.er cuatrimestre de 2026 con
+  entrega en agosto).
+
+### El proceso de entrega deja rastro en las ramas
+
+Los nombres de las ramas reflejan las etapas del trabajo final, que se repiten en casi todos los repos:
+
+1. **Propuesta** (`propuesta`, `Propuesta.md`, `Borrador-propuesta`, `Entrega-de-README-propuesta`).
+2. **Informe de avance** (`informe_de_avance`, `Informe-de-Avance`, `PR_informe_de_avance`).
+3. **Entrega final: memoria + video + código** (`memoria-video-codigo`, `Memoria_Video_Codigo`,
+   `Entrega_Final`).
+
+Varios repos tienen ramas como `README.md-corregido`, `consulta_codigo`, `Estado_Requisitos` o
+`revert-1-...`, y ramas `*-patch-N` creadas desde la web de GitHub. Eso sugiere que **las entregas se
+hacen como pull requests** y que la revisión ocurre ahí.
+
+### Toolchain y estructura del código
+
+Las 17 entregas con código son **muy homogéneas en plataforma**:
+
+- **Todas** usan **STM32F103RB en una Nucleo-F103RB** (según el `.ioc`), generadas con
+  **STM32CubeIDE**. CubeMX es 6.13.0 o 6.15.0, y FW_F1 es V1.8.6 o V1.8.7.
+- 16 tienen `.cproject`. `Pedro-ub` (Whack-A-Mole) tiene `.ioc` y carpetas `Inc/` y `Src/` en la raíz,
+  pero no el proyecto de Eclipse, así que no se puede importar directamente.
+- Ninguna usa CMake, PlatformIO ni Makefile propio. Ninguna usa memoria dinámica (`malloc`/`free`).
+- **6 versionan la carpeta `Debug/`** con artefactos de compilación (113 a 402 archivos). Hay que
+  filtrarlos antes de analizar.
+
+En cuanto a la estructura, **14 de las 17 siguen la plantilla de la cátedra** (`app/inc` y `app/src`,
+`app_init`/`app_update`, `task_cfg_list`, tareas `task_*` con archivos `_attribute.h` e
+`_interface.c`, statecharts `switch (state)` con `case ST_*`). Hay variantes de forma:
+
+- `App/Inc` y `App/Src` con mayúscula (`mjkloeckner`, `valenguirin`).
+- `app/` en la raíz del repo, no dentro de la carpeta del proyecto (`ecamueira`, `tomas-condo`).
+- Sufijos en otro orden (`task_actuator_attribute_LED.h` frente a `task_actuator_LED_attribute.h`).
+- Proyectos anidados en rutas largas (`SRAGV/Trabajo-FINAL_tdse`, `Software STM32/main`,
+  `ENTREGA_FINAL_MEMORIA/CODIGO_..._V3.0`).
+
+**3 entregas se apartan de la plantilla**, y son las más interesantes para probar la herramienta:
+
+| Repo | Estructura propia |
+|:--|:--|
+| `CavalittoDiazTubinezFerrero/tdse-tf_1-01` (BeepBuddy) | Capas `app/`, `config/`, `hardware/{audio,bluetooth,buttons,buzzer,leds}`, con `mode_manager`. No usa `task_cfg_list` ni statecharts `ST_*` |
+| `Pedro-ub/tdse-tf_2026-1erC_3-02` (Whack-A-Mole) | Archivos planos en `Src/` e `Inc/`, con `task_scheduler.c`, `fsm.c`, `queue.c` y `game.c` propios |
+| `valenguirin/tdse-tpf03_Reentrega` (Alarma vecinal) | Capa BSP propia (`bsp_gpio`, `bsp_uart_*`, `bsp_eeprom`), drivers `ble` y `gsm` con `*_interface`, y `wcet.h` propio. Sin `task_cfg_list` ni logger |
+
+### Volumen
+
+Contando solo el código propio (`app/` más los bloques `USER CODE` de `Core/`), sin `Drivers/`,
+`Debug/` ni copias:
+
+- **Entre ~1.000 y ~5.400 líneas no vacías** por entrega (mediana ~3.700), en **12 a 62 archivos**.
+- **3 a 16 tareas** por entrega entre las que siguen la plantilla. Las más comunes son `task_sensor`, `task_system`, `task_actuator`,
+  `task_display` y `task_menu`, además de tareas específicas como `task_bluetooth`, `task_storage`,
+  `task_pwm` o `task_dht22`.
+- Los bloques `USER CODE` de `Core/` suman pocas líneas (16 a 73): **casi todo el código propio está
+  en `app/`**, como pide la guía.
+- **Ruido a filtrar**: `franavin` tiene las versiones V1.0 y V3.0 del código en la misma rama.
+  `Embebidos-Fran-Marcos-Nacho` incluye una copia de `tdse-tp2_01-model_integration` ("código de
+  ejemplo de debouncing") y tres memorias de otros alumnos, de una materia anterior, usadas como
+  ejemplo.
+
+### Cuánto del código viene de la cátedra
+
+- **13 entregas conservan el encabezado de licencia de Juan Manuel Cruz** en 6 a 38 archivos. Partieron
+  de los proyectos de referencia y los extendieron.
+- `logger.c` y `systick.c` son **idénticos o casi idénticos** al de referencia en casi todas.
+  `app.c` está modificado en todas (más tareas, otros modos).
+- `display.c` (driver de LCD) es **casi idéntico en 3 entregas** (11 a 21 líneas distintas sobre 282)
+  a la librería de los proyectos `tp3_*` que se borraron del repo de la cátedra. Esa librería usa
+  **19 llamadas a `HAL_Delay`**. Así que los `HAL_Delay` de los drivers de display de los alumnos son,
+  en buena parte, **heredados del material de la cátedra**.
+
+Para la herramienta, esto significa que hay que **separar el código heredado del código propio del
+alumno** (por ejemplo, comparándolo contra las plantillas). Si no, se le atribuirían al alumno
+decisiones de la cátedra.
+
+### Patrones de diseño y restricciones observados en el código
+
+- **Cyclic Executive con tick de 1 ms**: presente en las 14 que siguen la plantilla. `Leangc13` no usa
+  `HAL_SYSTICK_IRQHandler()`: incrementa `g_app_tick_cnt` directamente en `SysTick_Handler`, dentro de
+  `USER CODE`, y deja `HAL_SYSTICK_Callback` como código muerto. Es una **variante válida que una regla
+  rígida ("tiene que llamar a `HAL_SYSTICK_IRQHandler`") marcaría como error**.
+- **Statecharts**: entre 6 y 45 `case ST_*` por entrega. En general hay modos de sistema (por ejemplo,
+  `task_system_normal`, `task_system_setup`, `task_system_falla`), lo que extiende el
+  `task_system_mode_t` de la referencia.
+- **Secciones críticas** con `CPSID`/`__disable_irq` y **`volatile`** en todas las entregas con código.
+- **Bloqueos dentro del ciclo de tareas**: la mayoría de los `HAL_Delay` están en drivers de display,
+  EEPROM o sensores, o en funciones `*_init`, donde los propios alumnos los justifican en comentarios
+  ("el `HAL_Delay` aquí es aceptable"). Pero hay casos **dentro de statecharts o de la navegación**:
+  - `franavin`: `task_system_setup_statechart()` con `HAL_Delay(1000)` y `HAL_Delay(10)`.
+  - `Leangc13`: `handle_setup_navigation()` con `HAL_Delay(1500)` y `HAL_Delay(800)`.
+
+  Esto es exactamente lo que el Cyclic Executive busca evitar. A la vez, hay alumnos que documentan
+  la regla explícitamente (`Matias-J-Sanchez-Q`: *"Los 5 ms de ciclo de escritura los cuenta el tick,
+  NO HAL_Delay"*), lo que sugiere que **es un criterio que los docentes marcan en las devoluciones**.
+- **Uso de `float`** en 8 entregas (cálculos de sensores). Puede ser relevante porque el Cortex-M3 no
+  tiene FPU, pero no hay evidencia de que la cátedra lo penalice.
+
+### Las memorias siguen una plantilla común
+
+Las memorias (de 43 a 94 KB de Markdown) tienen casi la misma estructura de capítulos. Eso indica que
+**hay una plantilla de memoria de la cátedra** que no está en el repo:
+
+- **Encabezado**: título, autores, resumen (a veces también un *abstract*), **registro de versiones**
+  e índice.
+- **Cap. 1, Introducción general**: necesidad y objetivo, productos comparables, justificación del
+  enfoque técnico, alcance y limitaciones.
+- **Cap. 2, Introducción específica**: requisitos (en tabla), casos de uso y descripción de módulos.
+- **Cap. 3, Diseño e implementación**: arquitectura general, hardware y firmware (con statecharts).
+- **Cap. 4, Ensayos y resultados**: pruebas funcionales de hardware y firmware, prueba de integración
+  (video), **Console & Build Analyzer** (ocupación de memoria), **WCET por tarea**, **factor de uso de
+  CPU (U)**, **medición de consumo** y **tabla de cumplimiento de requisitos**.
+- **Cap. 5, Conclusiones** y, en muchas, un capítulo o tabla de **uso de herramientas de IA**
+  (integrante, herramienta, uso y forma de verificación).
+
+Los números del capítulo 4 (WCET, U, memoria, consumo) aparecen en casi todas las memorias. Son las
+**restricciones de hardware que la cátedra realmente pide medir y justificar**, y ofrecen un punto de
+contraste: lo que dice la memoria frente a lo que se puede verificar en el código.
+
+Una memoria (`Pedro-ub`) menciona una *"corrección de formato de figuras y tablas según **pautas de la
+cátedra** (epígrafes de tabla arriba, referencia previa en el texto...)"*, así que también hay
+**pautas de formato** escritas en algún lado.
+
+### Evidencia de devoluciones docentes (que no están en los repos)
+
+**Ningún repo incluye devoluciones en archivos.** Pero las memorias muestran que existen:
+
+- En su registro de versiones, al menos 3 memorias tienen entradas literales **"Correcciones según
+  devolución de primer entrega"** y **"... de segunda entrega"** (`Matias-J-Sanchez-Q`,
+  `Embebidos-Fran-Marcos-Nacho`, `Taller-de-sistemas-embebidos-tps`). Esa redacción idéntica sugiere
+  que viene de la plantilla.
+- `lautaaguirre` registra una *"versión final (sujeta a revisión y correcciones del docente)"*, y
+  `CavalittoDiazTubinezFerrero` menciona *"recibir devoluciones parciales"* por etapa.
+- Hay dos reentregas en la tabla del README.
+
+Lo más probable es que las devoluciones estén en los **comentarios de los pull requests o issues de
+GitHub** (consistente con las ramas `*-patch-N` y `PR_informe_de_avance`), en el campus o por correo.
+En este relevamiento no se consultaron PRs ni issues: solo se clonó el contenido git.
+
+## 7. Qué falta, qué no se entiende y preguntas para la cátedra
 
 ### Lo que falta para el objetivo del trabajo
 
-1. **No hay código de alumnos en el repo.** Las 21 entregas de la tabla del README son repos externos
-   en ramas específicas. En 2 no hay link al código (Luz-Morse y Órganos de tubos). En 16 de las 21 filas
-   las **columnas "Código" e "Informe" están invertidas** (por ejemplo, la columna "Código" apunta al
-   `.md` de la memoria). Todas son **trabajos finales integradores** (TF), no los TP intermedios que
-   se corresponden con los proyectos de referencia.
-2. **No hay devoluciones docentes** de ningún tipo, así que no hay ejemplos de "buena corrección" para
+1. **No hay código de alumnos en este repo.** Las 21 entregas de la tabla del README son repos
+   externos (19 accesibles, 17 con código; ver la sección 6). En 16 de las 21 filas las **columnas
+   "Código" e "Informe" están invertidas**. Todas son **trabajos finales integradores** (TF), no los
+   TP intermedios que se corresponden con los proyectos de referencia.
+2. **No hay devoluciones docentes en ningún archivo**, ni acá ni en los repos de alumnos, aunque las
+   memorias muestran que existieron (sección 6). Sin ellas no hay ejemplos de "buena corrección" para
    calibrar ni para alimentar el RAG.
 3. **No hay rúbrica ni consignas.** No se sabe qué pide cada TP, qué pesa más en la nota ni qué cuenta
    como error grave o como sugerencia.
