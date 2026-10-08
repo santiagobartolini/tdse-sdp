@@ -485,3 +485,141 @@ Son relevantes porque, si el material de referencia es la "verdad", la herramien
     soluciones que se pueden usar como referencia interna (para el RAG) aunque no se publiquen?
 16. ¿Se van a completar las secciones "Patrones" del README y las guías que faltan (por ejemplo,
     `display`, menú, UART)?
+
+## 8. Cómo aprovechar este material
+
+Esta sección propone **qué rol cumple cada fuente de información** y en qué orden conviene usarlas.
+No define la arquitectura del sistema (componentes, frameworks, modelos): se queda en el nivel de los
+datos, que es lo que condiciona esas decisiones.
+
+### 8.1 Cada fuente sirve para algo distinto
+
+El error más probable sería tratar todo el material como un único "dataset". Son cinco fuentes de
+naturaleza distinta, y cada una sirve para una cosa:
+
+| Fuente | Qué es realmente | Para qué sirve | Para qué **no** sirve |
+|:--|:--|:--|:--|
+| Guías `.md` de la cátedra | Conocimiento normativo explícito (pocas reglas, bien definidas) | Reglas deterministas del análisis estático; corpus de recuperación para justificar observaciones citando a la cátedra | Ejemplos de corrección: no evalúan, explican |
+| Proyectos de referencia (`TdSE_workspace/`) | Implementación canónica de los patrones | Plantilla contra la que comparar (qué es heredado, qué es propio); ejemplos de "cómo se hace" para el LLM; base para generar casos de prueba | Verdad absoluta: tienen al menos un bug real (`adc_interrupt`) y simplificaciones (sin antirrebote, cola sin control de desborde) |
+| Código de las 17 entregas | Variedad real de soluciones, aciertos y errores | **Conjunto de desarrollo y evaluación** del sistema; catálogo de variantes válidas que no hay que penalizar | Entrenamiento supervisado (son pocas y no tienen etiquetas); ejemplos de "código correcto" en el RAG sin validación docente |
+| Memorias de las entregas | Afirmaciones del alumno sobre su propio trabajo (requisitos, WCET, U, consumo, memoria) | Contexto para auditar (qué quiso hacer el alumno) y **contraste memoria-código** (lo declarado frente a lo implementado) | Verdad sobre el código: son autodeclaraciones |
+| Devoluciones docentes (todavía no conseguidas) | Juicio experto con criterio, severidad y tono | Ejemplos de estilo para el LLM; etiquetas para evaluar; semilla del ciclo HITL | — (son la fuente más valiosa y la que falta) |
+
+### 8.2 Primer entregable: un catálogo de criterios
+
+Antes de diseñar el motor, conviene convertir lo relevado en un **catálogo de criterios** con
+procedencia y forma de verificación. Es el objeto central del sistema: lo usan el análisis estático,
+el RAG, la devolución y la validación docente. Además, es lo que hay que validar con la cátedra.
+
+Cada criterio tendría: identificador, enunciado, **origen** (guía explícita, convención implícita del
+código de referencia, plantilla de memoria o devolución docente), **severidad propuesta**, **forma de
+verificación** y un ejemplo positivo y uno negativo tomados del material real.
+
+Borrador inicial con lo que ya surge del relevamiento:
+
+| Criterio | Origen | Verificación |
+|:--|:--|:--|
+| Código de usuario en `Core/` solo dentro de `USER CODE` | Explícito (`STM32_Project.md`) | Determinista: comparar contra lo que generaría CubeMX o detectar código fuera de bloques |
+| `main.c` llama a `app_init()` y `app_update()`; la lógica está en `app/` | Explícito (`Cyclic_Executive.md`) | Determinista |
+| El tick de 1 ms llega al `app_update` (por `HAL_SYSTICK_IRQHandler` o equivalente) | Explícito | Semi-determinista: seguir el flujo SysTick → contador → `app_update`. **No** exigir la llamada literal (caso `Leangc13`) |
+| Sin bloqueos dentro de `*_update` ni de statecharts (`HAL_Delay`, bucles de espera) | Implícito (Cyclic Executive) y evidencia en las memorias | Determinista para detectar; **el LLM o el docente decide la severidad** según el contexto (en `*_init` o en un driver heredado suele ser aceptable) |
+| Variables compartidas con ISR son `volatile` y se acceden en sección crítica | Implícito (referencia) | Heurística estática (variables escritas en callbacks HAL) |
+| ISR y callbacks cortos (solo flags o contadores) | Implícito | Heurística (tamaño del callback y llamadas que hace) |
+| Separación `cfg` (const) / `dta` por tarea; comunicación por `put_event_*` | Explícito y convención | Heurística estructural (nombres, `const`, accesos cruzados entre tareas) |
+| Statecharts con `default:` y estados/eventos como `enum` | Convención | Determinista |
+| Cola de eventos con control de desborde | Convención (falta en la referencia) | Requiere decisión de la cátedra (pregunta 10) |
+| Convenciones de nombres y plantilla de archivo | Convención | Determinista; severidad baja salvo que la cátedra diga otra cosa (pregunta 6) |
+| WCET por tarea medido y suma < 1 ms; factor de uso U < 1 | Plantilla de memoria | Contraste: la memoria lo declara y el código debe tener la instrumentación DWT (`cycle_counter_*`) |
+| Cumplimiento de requisitos declarado en la memoria | Plantilla de memoria | LLM: verificar que cada requisito "cumplido" tenga código que lo implemente |
+
+La columna "Verificación" ya sugiere una división natural del trabajo: **lo determinista lo resuelve el
+análisis estático, y el LLM se reserva para el contexto, la severidad y la redacción**. Así el LLM
+explica y prioriza hallazgos concretos en lugar de "descubrir" errores por su cuenta, lo que reduce
+las alucinaciones.
+
+### 8.3 La normalización previa que pide este material
+
+El criterio de aceptación original pedía "normalizar el código antes del análisis". Con lo que se vio
+en los repos, eso significa concretamente:
+
+1. **Ubicar el proyecto**: buscar el `.ioc` (puede estar en la raíz o en carpetas anidadas) y, si hay
+   varias versiones en la misma rama (`V1.0` y `V3.0`), quedarse con la que apunta la entrega.
+2. **Descartar lo que no es del alumno**: `Drivers/`, `Middlewares/`, `Debug/`, `.metadata/`,
+   proyectos de ejemplo copiados y memorias ajenas.
+3. **Extraer el código propio de `Core/`**: solo los bloques `USER CODE`.
+4. **Marcar el código heredado**: comparar cada archivo contra las plantillas de la cátedra (`logger`,
+   `systick`, `dwt`, `display`, `app` y las tareas de `model_integration`) y etiquetar cada archivo o
+   función como *heredado sin cambios*, *heredado y modificado* o *propio*. Esto evita atribuirle al
+   alumno los `HAL_Delay` del driver de display de la cátedra y permite enfocar la devolución en lo que
+   escribió.
+5. **Unificar las variantes de forma**: `app` o `App`, `Inc`/`Src` en la raíz, sufijos `_attribute` en
+   otro orden.
+6. **Extraer metadatos** del `.ioc` (MCU, reloj, periféricos, prioridades NVIC) y de la memoria
+   (requisitos, WCET, U, consumo) como datos estructurados, para cruzarlos con el código.
+
+### 8.4 Cómo evaluar el sistema con tan pocos datos
+
+Con 17 entregas no hay volumen para entrenar, pero sí para **evaluar**, si se arma un conjunto de
+prueba con respuestas conocidas. Se puede combinar tres fuentes:
+
+- **Hallazgos reales ya identificados** (sección 6): `HAL_Delay` dentro de statecharts en `franavin` y
+  `Leangc13`; el bug de SysTick en `adc_interrupt`; el falso positivo de `Leangc13`. Son pocos, pero
+  son reales.
+- **Fallas inyectadas** en los proyectos de referencia y en algunas entregas: quitar el enganche del
+  SysTick, meter un `HAL_Delay` en un `*_update`, sacar un `volatile`, escribir fuera de `USER CODE`,
+  acceder a datos de otra tarea sin pasar por la interfaz. Cada mutación es un caso etiquetado
+  "gratis", y permite medir precisión y exhaustividad por criterio.
+- **Anotación docente de una muestra**: pedir a uno o dos docentes que corrijan 4 o 5 entregas con el
+  catálogo de criterios. Eso da etiquetas reales y, si son dos docentes, el **acuerdo entre
+  correctores**, que es el techo realista de lo que puede lograr el sistema.
+
+Una regla práctica para el RAG: **no indexar una entrega como ejemplo mientras se evalúa esa misma
+entrega**. Si no, el sistema "se copia" y las métricas quedan infladas.
+
+### 8.5 Qué indexar para la recuperación (y qué no)
+
+- **Sí**: las guías (divididas por concepto: SysTick, EXTI, timers, ADC, statecharts, colas), el código
+  de referencia dividido por función o tarea con metadatos (patrón, archivo, rol), el catálogo de
+  criterios con sus ejemplos y, cuando existan, las devoluciones docentes estructuradas.
+- **Con cuidado**: fragmentos de entregas de alumnos, solo si un docente los validó como buen o mal
+  ejemplo, y etiquetados como tales.
+- **No**: HAL y CMSIS de ST (ruido enorme, sin valor para la corrección), carpetas `Debug/` ni memorias
+  completas (mejor extraer de ellas los datos estructurados).
+
+### 8.6 Cómo conseguir y estructurar las devoluciones
+
+Las devoluciones son lo más valioso y lo que falta. Hay dos caminos, que se pueden combinar:
+
+1. **Recuperar las existentes**: revisar los comentarios de PR e issues de los 19 repos públicos
+   (necesita la API de GitHub) y pedirle a la cátedra las que estén en el campus o en correos.
+2. **Generarlas desde ya con una estructura fija**: cada observación docente como
+   `(criterio, severidad, archivo:línea, texto)`. Ese mismo formato es el que después usaría el ciclo
+   HITL: el docente acepta, edita o descarta cada observación del sistema, y queda un registro
+   etiquetado que mejora la recuperación y la calibración de severidades sin necesidad de entrenar un
+   modelo.
+
+### 8.7 Orden sugerido
+
+1. **Validar con la cátedra** las preguntas de la sección 7, sobre todo la rúbrica, la severidad de los
+   criterios y el acceso a las devoluciones.
+2. **Armar el catálogo de criterios** (8.2) con origen, severidad y ejemplos reales, y que lo valide un
+   docente.
+3. **Construir el conjunto de evaluación** (8.4) antes que el motor, para poder medir desde la primera
+   versión.
+4. **Recién ahí**, decidir la arquitectura: qué criterios resuelve el análisis estático, qué recupera
+   el RAG y qué redacta el LLM.
+
+### 8.8 Riesgos de usar este material
+
+- **Sesgo de una sola cátedra y una sola placa**: todo es Nucleo-F103RB, de un mismo docente y de dos
+  cohortes. Generaliza mal a otras materias o plataformas, pero para el objetivo del trabajo (esta
+  cátedra) es una ventaja.
+- **Referencia con errores**: si se toma el código de referencia como verdad absoluta, el sistema hereda
+  sus bugs y simplificaciones. Hay que corregirlo o anotarlo antes de usarlo como patrón.
+- **Reglas demasiado literales**: el caso `Leangc13` muestra que verificar la forma en lugar del efecto
+  genera falsos positivos. Los criterios deberían expresarse por su intención ("el tick llega al
+  scheduler"), no por una llamada específica.
+- **Privacidad**: los repos son públicos, pero tienen nombres de alumnos. Conviene anonimizar en el
+  informe del trabajo final y confirmar con la cátedra si hace falta consentimiento (pregunta 4).
+- **Pocas etiquetas**: hasta tener devoluciones o anotación docente, cualquier métrica de calidad del
+  sistema va a depender de casos sintéticos.
