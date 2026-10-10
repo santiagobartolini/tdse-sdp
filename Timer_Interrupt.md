@@ -21,6 +21,8 @@
 ```
 timer_interrupt/Core/Src/main.c
 
+. . .
+
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -139,10 +141,14 @@ static void MX_TIM3_Init(void)
   /* USER CODE END TIM3_Init 2 */
 
 }
+
+. . .
 ```
 
 ```
 timer_interrupt/Core/Startup/startup_stm32f103rbtx.s
+
+. . .
 
 /******************************************************************************
 *
@@ -172,10 +178,14 @@ g_pfnVectors:
 
   .word BootRAM          /* @0x108. This is for boot in RAM mode for
                             STM32F10x Medium Density devices. */
+
+. . .
 ```
 
 ```
 timer_interrupt/Core/Src/stm32f1xx_it.c
+
+. . .
 
 /**
   * @brief This function handles TIM2 global interrupt.
@@ -204,10 +214,14 @@ void TIM3_IRQHandler(void)
 
   /* USER CODE END TIM3_IRQn 1 */
 }
+
+. . .
 ```
 
 ```
 timer_interrupt/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c
+
+. . .
 
 /**
   * @brief  This function handles TIM interrupts requests.
@@ -249,10 +263,14 @@ __weak void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             the HAL_TIM_PeriodElapsedCallback could be implemented in the user file
    */
 }
+
+. . .
 ```
 
 ```
 timer_interrupt/app/src/app_it.c
+
+. . .
 
 /********************** external data declaration ****************************/
 . . .
@@ -286,6 +304,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		/* Work to be done. */
 	}
 }
+
+. . .
 ```
 
 ```

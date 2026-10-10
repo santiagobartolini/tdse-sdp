@@ -6360,7 +6360,10 @@ void app_it_init(void)
  8002318:	200000f8 	.word	0x200000f8
 
 0800231c <HAL_SYSTICK_Callback>:
-
+/**
+  * @brief  SYSTICK callback.
+  * @retval None
+  */
 void HAL_SYSTICK_Callback(void)
 {
  800231c:	b480      	push	{r7}

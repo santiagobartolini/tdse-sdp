@@ -10,6 +10,8 @@
 ```
 semihosting/Code/Src/main.c
 
+. . .
+
 /* USER CODE BEGIN Includes */
 
 #include "stdio.h"
@@ -37,4 +39,6 @@ extern void initialise_monitor_handles(void);
   printf("Hello World!\n");
 
   /* USER CODE END 2 */
+
+. . .
 ```

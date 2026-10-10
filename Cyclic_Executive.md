@@ -24,6 +24,8 @@
 ```
 cyclic_executive/Code/Src/stm32f1xx_it.c
 
+. . .
+
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
   HAL_SYSTICK_IRQHandler();
@@ -78,6 +80,8 @@ extern void initialise_monitor_handles(void);
 
   }
   /* USER CODE END 3 */
+
+. . .
 ```
 
 ```

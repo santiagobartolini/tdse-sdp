@@ -71,6 +71,10 @@ void app_it_init(void)
 	HAL_ADC_Start_IT(&hadc2);
 }
 
+/**
+  * @brief  SYSTICK callback.
+  * @retval None
+  */
 void HAL_SYSTICK_Callback(void)
 {
 	/* Update Tick Counter */

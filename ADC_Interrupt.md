@@ -16,6 +16,8 @@
 ```
 adc_interrupt/Core/Src/main.c
 
+. . .
+
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef hadc1;
 TIM_HandleTypeDef hadc2;
@@ -143,11 +145,12 @@ static void MX_ADC2_Init(void)
 }
 
 . . .
-
 ```
 
 ```
 adc_interrupt/Core/Startup/startup_stm32f103rbtx.s
+
+. . .
 
 /******************************************************************************
 *
@@ -171,10 +174,13 @@ g_pfnVectors:
 
   .word BootRAM          /* @0x108. This is for boot in RAM mode for
                             STM32F10x Medium Density devices. */
+. . .
 ```
 
 ```
 adc_interrupt/Core/Src/stm32f1xx_it.c
+
+. . .
 
 /**
   * @brief This function handles ADC1 and ADC2 global interrupts.
@@ -190,6 +196,8 @@ void ADC1_2_IRQHandler(void)
 
   /* USER CODE END ADC1_2_IRQn 1 */
 }
+
+. . .
 ```
 
 ```
@@ -226,10 +234,14 @@ __weak void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
             function HAL_ADC_ConvCpltCallback must be implemented in the user file.
    */
 }
+
+. . .
 ```
 
 ```
 adc_interrupt/app/src/app_it.c
+
+. . .
 
 /********************** external data declaration ****************************/
 . . .
@@ -267,6 +279,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 		/* Work to be done. */
 	}
 }
+
+. . .
 ```
 
 ```

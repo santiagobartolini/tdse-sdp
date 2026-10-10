@@ -64,6 +64,10 @@ void app_it_init(void)
     __asm("CPSIE i");	/* enable interrupts */
 }
 
+/**
+  * @brief  SYSTICK callback.
+  * @retval None
+  */
 void HAL_SYSTICK_Callback(void)
 {
 	/* Update Tick Counter */

@@ -21,6 +21,8 @@
 ```
 gpio_interrupt/Core/Src/main.c
 
+. . .
+
 /* Private function prototypes -----------------------------------------------*/
 . . . 
 
@@ -96,10 +98,14 @@ static void MX_GPIO_Init(void)
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
+
+. . .
 ```
 
 ```
 gpio_interrupt/Core/Startup/startup_stm32f103rbtx.s
+
+. . .
 
 /******************************************************************************
 *
@@ -135,10 +141,14 @@ g_pfnVectors:
 
   .word BootRAM          /* @0x108. This is for boot in RAM mode for
                             STM32F10x Medium Density devices. */
+
+. . .
 ```
 
 ```
 gpio_interrupt/Core/Src/stm32f1xx_it.c
+
+. . .
 
 /**
   * @brief This function handles EXTI line4 interrupt.
@@ -181,10 +191,14 @@ void EXTI15_10_IRQHandler(void)
 
   /* USER CODE END EXTI15_10_IRQn 1 */
 }
+
+. . .
 ```
 
 ```
 gpio_interrupt/Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
+
+. . .
 
 /**
   * @brief  This function handles EXTI interrupt request.
@@ -214,10 +228,14 @@ __weak void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
            the HAL_GPIO_EXTI_Callback could be implemented in the user file
    */
 }
+
+. . .
 ```
 
 ```
 gpio_interrupt/app/src/app_it.c
+
+. . .
 
 /**
   * @brief  EXTI line detection callbacks.
@@ -243,6 +261,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	}
 
 }
+
+. . .
 ```
 
 ```
